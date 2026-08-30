@@ -1,5 +1,7 @@
 # agentrouter-autologin
 
+> **English:** [README.en.md](README.en.md)
+
 Автоматический ежедневный логин на [agentrouter.org](https://agentrouter.org) для получения
 бонусных $25 в день + логирование баланса (чтобы видеть, начисляется ли бонус).
 

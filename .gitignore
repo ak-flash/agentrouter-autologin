@@ -1,0 +1,20 @@
+# Секреты и артефакты
+.env
+session.json
+logs/
+*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+autologin.lock
+
+# IDE
+.idea/
+
+# Файлы состояния
+balance.txt
+last_success.txt
+
+# Профиль браузера (сессия, cookies, история)
+session_profile/

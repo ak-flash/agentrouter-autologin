@@ -645,23 +645,22 @@ async def run(headless: bool) -> int:
         virtual_display.start()
         log.debug("Виртуальный дисплей Xvfb запущен: %s", os.getenv("DISPLAY"))
 
-    config = zd.Config(
-        headless=effective_headless,
-        user_data_dir=str(profile_dir),
-        sandbox=False,  # запуск под root: Chrome не стартует с sandbox
-    )
     browser_path = next(
         (shutil.which(name) for name in (
             "google-chrome", "google-chrome-stable", "chromium", "chromium-browser"
         ) if shutil.which(name)),
         None,
     )
-    if browser_path:
-        config.browser = browser_path
-        log.debug("Браузер: %s", browser_path)
-    else:
+    if not browser_path:
         log.error("Chrome/Chromium не найден в PATH")
         return 2
+    log.debug("Браузер: %s", browser_path)
+    config = zd.Config(
+        headless=effective_headless,
+        user_data_dir=str(profile_dir),
+        sandbox=False,  # запуск под root: Chrome не стартует с sandbox
+        browser_executable_path=browser_path,
+    )
     if PROXY:
         # zendriver передаёт дополнительные аргументы напрямую Chromium.
         # --proxy-server поддерживает HTTP(S) и SOCKS5-прокси.

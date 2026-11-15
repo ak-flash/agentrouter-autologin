@@ -13,13 +13,15 @@
 
 ### Быстрый deploy на Linux/systemd
 
-Скрипт требует подготовленный проект в `/opt/agentrouter-autologin` и запускается от root:
+Клонировать проект и запустить deploy можно прямо из каталога проекта:
 
 ```bash
+git clone https://github.com/ak-flash/agentrouter-autologin.git
+cd agentrouter-autologin
 sudo ./deploy.sh
 ```
 
-Можно указать другой каталог:
+`deploy.sh` автоматически определяет папку, в которой находится сам скрипт, поэтому `APP_DIR` указывать не требуется. При необходимости его можно переопределить:
 
 ```bash
 sudo APP_DIR=/srv/agentrouter-autologin ./deploy.sh

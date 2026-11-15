@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/agentrouter-autologin}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="${APP_DIR:-${SCRIPT_DIR}}"
 SERVICE="agentrouter-autologin"
 PYTHON="${PYTHON:-python3}"
 
@@ -17,7 +18,7 @@ read -r -p "PROXY (необязательно): " PROXY
 
 mkdir -p "${APP_DIR}"
 if [[ ! -f "${APP_DIR}/autologin.py" ]]; then
-  echo "Скопируйте проект в ${APP_DIR} или задайте APP_DIR с уже подготовленным проектом."
+  echo "В ${APP_DIR} не найден autologin.py. Запустите deploy.sh из каталога проекта."
   exit 1
 fi
 

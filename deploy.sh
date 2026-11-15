@@ -55,7 +55,20 @@ if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null && 
   echo "Chrome/Chromium не найден. Устанавливаю Chromium..."
   if command -v apt-get >/dev/null; then
     apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y chromium
+    # В Ubuntu chromium часто является snap-переходником. В окружениях без
+    # loop/squashfs snap не работает, поэтому используем Google Chrome .deb.
+    if ! DEBIAN_FRONTEND=noninteractive apt-get install -y chromium; then
+      echo "Chromium через apt недоступен, устанавливаю Google Chrome..."
+      # Удаляем snap-переходник, оставшийся в незавершённом состоянии dpkg.
+      dpkg --remove --force-remove-reinstreq chromium-browser 2>/dev/null || true
+      apt-get install -y wget ca-certificates
+      tmp_deb="$(mktemp --suffix=.deb)"
+      trap 'rm -f "${tmp_deb}"' EXIT
+      wget -q -O "${tmp_deb}" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      DEBIAN_FRONTEND=noninteractive apt-get install -y "${tmp_deb}"
+      rm -f "${tmp_deb}"
+      trap - EXIT
+    fi
   elif command -v dnf >/dev/null; then
     dnf install -y chromium
   elif command -v yum >/dev/null; then

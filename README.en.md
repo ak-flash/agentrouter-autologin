@@ -13,6 +13,18 @@ email/password → read the balance.
 
 Requires Python 3.10+ and an installed Google Chrome / Chromium.
 
+### Proxy
+
+Set `PROXY` in `.env` to route all Chrome traffic through a proxy:
+
+```dotenv
+AGENTROUTER_PROXY=http://127.0.0.1:8080
+# https:// and socks5:// are also supported
+# authenticated proxy: http://user:password@host:port
+```
+
+If unset, the browser connects directly. Proxy passwords are not written to the log.
+
 **Windows (PowerShell):**
 ```powershell
 cd e:\My-projects\agentrouter-autologin

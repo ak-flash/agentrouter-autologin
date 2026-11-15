@@ -11,7 +11,40 @@
 
 ## Установка
 
+### Быстрый deploy на Linux/systemd
+
+Скрипт требует подготовленный проект в `/opt/agentrouter-autologin` и запускается от root:
+
+```bash
+sudo ./deploy.sh
+```
+
+Можно указать другой каталог:
+
+```bash
+sudo APP_DIR=/srv/agentrouter-autologin ./deploy.sh
+```
+
+Скрипт создаёт virtualenv, устанавливает зависимости, интерактивно запрашивает email, пароль и `PROXY`, создаёт systemd-сервис и запускает его. Статус:
+
+```bash
+systemctl status agentrouter-autologin
+journalctl -u agentrouter-autologin -f
+```
+
 Требуется Python 3.10+ и установленный Google Chrome / Chromium.
+
+### Прокси
+
+Прокси задаётся в `.env` переменной `PROXY` и применяется ко всему трафику Chrome:
+
+```dotenv
+AGENTROUTER_PROXY=http://127.0.0.1:8080
+# также поддерживаются https:// и socks5://
+# для прокси с авторизацией: http://user:password@host:port
+```
+
+Если переменная не задана, запуск выполняется напрямую. Пароль прокси не выводится в лог.
 
 **Windows (PowerShell):**
 ```powershell
@@ -57,7 +90,7 @@ SAVE_DEBUG_PAGES=false
 
 # Минимальный интервал между успешными запусками, в секундах (по умолчанию 86400 = 24ч).
 # Используется при частых cron-запусках, чтобы не логиниться чаще раза в сутки.
-MIN_INTERVAL_SEC=86400
+# Интервал выбирается автоматически: от 24 до 25 часов
 ```
 
 ## Использование

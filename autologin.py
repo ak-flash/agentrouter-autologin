@@ -17,6 +17,7 @@ import asyncio
 import json
 import logging
 import os
+import random
 import re
 import sys
 import time
@@ -49,6 +50,9 @@ load_dotenv()
 
 EMAIL = os.getenv("AGENTROUTER_EMAIL", "")
 PASSWORD = os.getenv("AGENTROUTER_PASSWORD", "")
+# Необязательный прокси для Chrome (http://, https:// или socks5://).
+# Можно также передать логин/пароль в URL: http://user:password@host:port
+PROXY = os.getenv("PROXY", "").strip()
 
 BASE_URL = os.getenv("AGENTROUTER_BASE_URL", "https://agentrouter.org")
 LOGIN_URL = f"{BASE_URL}/login"
@@ -63,8 +67,9 @@ SUCCESS_FILE = Path("last_success.txt")
 # Lock-файл для защиты от одновременного запуска двух процессов (дублирующийся cron).
 # Если процесс держит блокировку — второй сразу завершается, не открывая браузер.
 LOCK_FILE = Path("autologin.lock")
-# Минимальный интервал между успешными запусками (сек). По умолчанию 24 часа.
-MIN_INTERVAL_SEC = int(os.getenv("MIN_INTERVAL_SEC", str(24 * 60 * 60)))
+# Интервал между успешными запусками: случайно от 24 до 25 часов.
+MIN_INTERVAL_SEC = 24 * 60 * 60
+MAX_INTERVAL_SEC = 25 * 60 * 60
 # CSS-селектор баланса
 BALANCE_SELECTOR = ".text-lg.font-semibold"
 # Логи
@@ -128,6 +133,12 @@ def read_last_success() -> float | None:
 
 def write_last_success() -> None:
     SUCCESS_FILE.write_text(str(time.time()), encoding="utf-8")
+
+
+def next_interval_seconds(last_success: float) -> int:
+    """Стабильный случайный интервал до следующей проверки: от 24 до 25 часов."""
+    # Один и тот же порог сохраняется между cron-запусками.
+    return random.Random(int(last_success)).randint(MIN_INTERVAL_SEC, MAX_INTERVAL_SEC)
 
 
 def write_skip_status(message: str) -> None:
@@ -638,6 +649,11 @@ async def run(headless: bool) -> int:
         user_data_dir=str(profile_dir),
         sandbox=False,  # запуск под root: Chrome не стартует с sandbox
     )
+    if PROXY:
+        # zendriver передаёт дополнительные аргументы напрямую Chromium.
+        # --proxy-server поддерживает HTTP(S) и SOCKS5-прокси.
+        config.add_argument(f"--proxy-server={PROXY}")
+        log.info("Используется прокси: %s", PROXY.split("@")[-1])
     browser = await zd.start(config)
     try:
         tab = await browser.get(DASHBOARD_URL)
@@ -786,12 +802,13 @@ def main() -> int:
             last = read_last_success()
             if last is not None:
                 elapsed = time.time() - last
-                if elapsed < MIN_INTERVAL_SEC:
-                    remaining = MIN_INTERVAL_SEC - elapsed
+                interval = next_interval_seconds(last)
+                if elapsed < interval:
+                    remaining = interval - elapsed
                     msg = (
-                        "Пропуск: с прошлого успеха прошло %.1f ч (< %.1f ч). "
+                        "Пропуск: с прошлого успеха прошло %.1f ч (< случайного интервала %.1f ч). "
                         "Следующий запуск через %.1f ч."
-                        % (elapsed / 3600, MIN_INTERVAL_SEC / 3600, remaining / 3600)
+                        % (elapsed / 3600, interval / 3600, remaining / 3600)
                     )
                     write_skip_status(msg)
                     print(msg)

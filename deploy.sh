@@ -17,10 +17,29 @@ if [[ -d "${SCRIPT_DIR}/.git" ]]; then
   git -C "${SCRIPT_DIR}" pull --ff-only
 fi
 
-read -r -p "AGENTROUTER_EMAIL: " EMAIL
-read -r -s -p "AGENTROUTER_PASSWORD: " PASSWORD
-echo
-read -r -p "PROXY (необязательно): " PROXY
+# Используем уже заполненный .env и спрашиваем только отсутствующие значения.
+ENV_FILE="${APP_DIR}/.env"
+if [[ -f "${ENV_FILE}" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${ENV_FILE}"
+  set +a
+fi
+
+EMAIL="${AGENTROUTER_EMAIL:-}"
+PASSWORD="${AGENTROUTER_PASSWORD:-}"
+PROXY="${PROXY:-}"
+
+if [[ -z "${EMAIL}" ]]; then
+  read -r -p "AGENTROUTER_EMAIL: " EMAIL
+fi
+if [[ -z "${PASSWORD}" ]]; then
+  read -r -s -p "AGENTROUTER_PASSWORD: " PASSWORD
+  echo
+fi
+if [[ -z "${PROXY}" && ! -f "${ENV_FILE}" ]]; then
+  read -r -p "PROXY (необязательно): " PROXY
+fi
 
 mkdir -p "${APP_DIR}"
 if [[ ! -f "${APP_DIR}/autologin.py" ]]; then

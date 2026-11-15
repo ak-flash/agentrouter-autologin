@@ -11,6 +11,12 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
+# Обновляем код перед деплоем, если проект клонирован из Git.
+if [[ -d "${SCRIPT_DIR}/.git" ]]; then
+  echo "Обновление кода из Git..."
+  git -C "${SCRIPT_DIR}" pull --ff-only
+fi
+
 read -r -p "AGENTROUTER_EMAIL: " EMAIL
 read -r -s -p "AGENTROUTER_PASSWORD: " PASSWORD
 echo
@@ -27,7 +33,25 @@ if ! command -v systemctl >/dev/null; then
   exit 1
 fi
 if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null && ! command -v chromium-browser >/dev/null; then
-  echo "Предупреждение: Chrome/Chromium не найден. Установите его перед запуском."
+  echo "Chrome/Chromium не найден. Устанавливаю Chromium..."
+  if command -v apt-get >/dev/null; then
+    apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get install -y chromium
+  elif command -v dnf >/dev/null; then
+    dnf install -y chromium
+  elif command -v yum >/dev/null; then
+    yum install -y chromium
+  elif command -v pacman >/dev/null; then
+    pacman -Sy --noconfirm chromium
+  else
+    echo "Ошибка: не найден пакетный менеджер (apt-get/dnf/yum/pacman)."
+    exit 1
+  fi
+fi
+
+if command -v apt-get >/dev/null; then
+  echo "Устанавливаю системные зависимости для headful Chromium..."
+  apt-get install -y xvfb
 fi
 
 if [[ ! -d "${APP_DIR}/.venv" ]]; then

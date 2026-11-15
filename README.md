@@ -27,7 +27,7 @@ sudo ./deploy.sh
 sudo APP_DIR=/srv/agentrouter-autologin ./deploy.sh
 ```
 
-Скрипт создаёт virtualenv, устанавливает зависимости, интерактивно запрашивает email, пароль и `PROXY`, создаёт systemd-сервис и запускает его. Статус:
+Скрипт сначала выполняет `git pull --ff-only` (если каталог является Git-репозиторием), автоматически устанавливает Chromium и `xvfb` через доступный пакетный менеджер, создаёт virtualenv, устанавливает зависимости, интерактивно запрашивает email, пароль и `PROXY`, создаёт systemd-сервис и запускает его. Статус:
 
 ```bash
 systemctl status agentrouter-autologin

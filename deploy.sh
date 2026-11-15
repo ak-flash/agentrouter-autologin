@@ -51,7 +51,7 @@ if ! command -v systemctl >/dev/null; then
   echo "Ошибка: нужен systemd."
   exit 1
 fi
-if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null && ! command -v chromium-browser >/dev/null; then
+if ! command -v google-chrome >/dev/null && ! command -v google-chrome-stable >/dev/null && ! command -v chromium >/dev/null && ! command -v chromium-browser >/dev/null; then
   echo "Chrome/Chromium не найден. Устанавливаю Chromium..."
   if command -v apt-get >/dev/null; then
     apt-get update
@@ -67,6 +67,7 @@ if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null && 
       wget -q -O "${tmp_deb}" https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
       DEBIAN_FRONTEND=noninteractive apt-get install -y "${tmp_deb}"
       rm -f "${tmp_deb}"
+      hash -r
       trap - EXIT
     fi
   elif command -v dnf >/dev/null; then

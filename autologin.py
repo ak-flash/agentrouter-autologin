@@ -19,6 +19,7 @@ import logging
 import os
 import random
 import re
+import shutil
 import sys
 import time
 from datetime import datetime
@@ -649,6 +650,18 @@ async def run(headless: bool) -> int:
         user_data_dir=str(profile_dir),
         sandbox=False,  # запуск под root: Chrome не стартует с sandbox
     )
+    browser_path = next(
+        (shutil.which(name) for name in (
+            "google-chrome", "google-chrome-stable", "chromium", "chromium-browser"
+        ) if shutil.which(name)),
+        None,
+    )
+    if browser_path:
+        config.browser = browser_path
+        log.debug("Браузер: %s", browser_path)
+    else:
+        log.error("Chrome/Chromium не найден в PATH")
+        return 2
     if PROXY:
         # zendriver передаёт дополнительные аргументы напрямую Chromium.
         # --proxy-server поддерживает HTTP(S) и SOCKS5-прокси.
